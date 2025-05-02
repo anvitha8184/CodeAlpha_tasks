@@ -1,0 +1,50 @@
+import yfinance as yf
+from datetime import datetime
+
+# Function to fetch stock data
+def get_stock_data(ticker):
+    stock = yf.Ticker(ticker)
+    data = stock.history(period="1d")
+    if not data.empty:
+        return data['Close'].iloc[-1]
+    else:
+        raise ValueError(f"No data found for ticker {ticker}")
+
+# Function to add stock to portfolio
+def add_stock(portfolio, ticker, quantity, price):
+    portfolio[ticker] = {
+        "quantity": quantity,
+        "purchase_price": price,
+        "purchase_date": datetime.now()
+    }
+    return portfolio
+
+# Function to calculate current value
+def calculate_value(portfolio):
+    for ticker in portfolio:
+        try:
+            current_price = get_stock_data(ticker)
+            portfolio[ticker]["current_price"] = current_price
+            portfolio[ticker]["current_value"] = current_price * portfolio[ticker]["quantity"]
+            portfolio[ticker]["gain_loss"] = portfolio[ticker]["current_value"] - (portfolio[ticker]["purchase_price"] * portfolio[ticker]["quantity"])
+        except Exception as e:
+            print(f"Error fetching data for {ticker}: {e}")
+    return portfolio
+
+# Initialize portfolio
+def main():
+    portfolio = {}
+
+    # Example usage
+    portfolio = add_stock(portfolio, "AAPL", 10, 170)
+    portfolio = add_stock(portfolio, "GOOG", 5, 150)
+
+    portfolio = calculate_value(portfolio)
+
+    for ticker, info in portfolio.items():
+        print(f"\nTicker: {ticker}")
+        for key, value in info.items():
+            print(f"{key}: {value}")
+
+if __name__ == "__main__":
+    main()
